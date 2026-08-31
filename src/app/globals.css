@@ -1,26 +1,270 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0f0f0;
+  --foreground: #0a0a0a;
+
+  /* brand */
+  --color-brand-purple: #a21ee8;
+  --color-brand-pink: #f239a0;
+  --color-nav-bg: #171034;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-brand-purple: var(--color-brand-purple);
+  --color-brand-pink: var(--color-brand-pink);
+  --color-nav-bg: var(--color-nav-bg);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-jakarta);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  /* Firefox: thin, low-contrast scrollbar instead of the default chunky one. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(23, 16, 52, 0.18) transparent;
+}
+
+/* WebKit/Blink (Chrome, Safari, Edge): same idea via the vendor pseudo-elements. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(23, 16, 52, 0.18);
+  border-radius: 999px;
+  border: 2px solid var(--background);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(23, 16, 52, 0.32);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Anchor jumps land below the sticky nav rather than under it. */
+section[id] {
+  scroll-margin-top: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.brand-gradient-text {
+  background: linear-gradient(90deg, var(--color-brand-purple) 0%, var(--color-brand-pink) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* background-clip: text paints only within the line box; a tight leading
+     (e.g. leading-[1.1] on a bold display face) can crop the fill short of
+     descenders like "y" and "p", leaving their tips unpainted/invisible even
+     though the glyph outline itself is intact. Padding doesn't affect an
+     inline element's line layout, so this pads only the paint area. */
+  padding-block: 0.12em;
+}
+
+.brand-gradient-bg {
+  background: linear-gradient(90deg, var(--color-brand-purple) 0%, var(--color-brand-pink) 100%);
+}
+
+/* Edge fade on the hero illustration — copied from the source site's mask. */
+.hero-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgb(0, 0, 0) 9.99261%,
+    rgb(0, 0, 0) 50.227%,
+    rgb(0, 0, 0) 88.6648%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgb(0, 0, 0) 9.99261%,
+    rgb(0, 0, 0) 50.227%,
+    rgb(0, 0, 0) 88.6648%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Button shadow stacks, lifted from the source site's computed styles. */
+.btn-nav-shadow {
+  box-shadow:
+    rgba(0, 0, 0, 0.03) 0px 16px 30px 0px,
+    rgba(122, 14, 86, 0.14) 0px 2px 3px 0px,
+    rgba(122, 14, 86, 0.05) 0px 6px 8px 0px,
+    rgba(255, 255, 255, 0.12) 0px 0px 4px 2px inset;
+}
+
+.btn-cta-shadow {
+  box-shadow:
+    rgba(255, 255, 255, 0.25) 0px 2.4px 1.2px 0px inset,
+    rgba(0, 0, 0, 0.1) 0px 1.2px 1.2px 0px inset,
+    rgba(0, 0, 0, 0.1) 0px -2.4px 0px 0px inset,
+    rgba(255, 255, 255, 0.16) 0px 0px 9.6px 4.8px inset,
+    rgba(0, 0, 0, 0.2) 0px 8px 20px -4px;
+}
+
+/* --- Industries wheel -------------------------------------------------
+ * A tall band whose height IS the scroll budget, with a sticky one-viewport
+ * stage inside it. Industries.tsx computes progress from these numbers, so
+ * the pin offset (88px) has to stay in step with PIN_OFFSET there.
+ */
+.telvox-industries {
+  position: relative;
+  width: 100%;
+  height: 300vh;
+  /* White, same as the wheel's own stage — only the very top eases in from
+   * the grey page background above it, so the pinned stage's edge blends
+   * into a slow fade instead of a flat cut, without greying the wheel
+   * itself. */
+  background: linear-gradient(to bottom, #f0f0f0 0, #fff 280px, #fff 100%);
+}
+
+.telvox-industries-pin {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: calc(100vh - 88px);
+}
+
+/* A width, not a surface — no background, or the fan reads as a slab. */
+.telvox-industries-frame {
+  width: 100%;
+  max-width: 1340px;
+  height: 100%;
+  overflow: hidden;
+  /* The wheel is taller than the frame; fade the cut rather than slicing
+   * a segment's card mid-word as it turns past the top edge. Eased over a
+   * taller band (was 76px) so the blend into the matching page background
+   * above reads as a slow fade rather than a quick cut. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 180px, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 180px, #000 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.telvox-industries-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 1024px) {
+  .telvox-industries {
+    height: 240vh;
+  }
+  .telvox-industries-pin {
+    top: 72px;
+    height: calc(100vh - 72px);
+  }
+}
+
+@media (max-width: 768px) {
+  .telvox-industries {
+    height: 200vh;
+  }
+}
+
+/* No pin without motion: one static screen in normal flow. */
+@media (prefers-reduced-motion: reduce) {
+  .telvox-industries {
+    height: auto;
+    padding: 60px 0;
+  }
+  .telvox-industries-pin {
+    position: relative;
+    top: 0;
+    height: auto;
+    align-items: center;
+    padding: 0 40px;
+  }
+  .telvox-industries-frame {
+    height: 620px;
+  }
+}
+
+/* ROI calculator fallback heights, used until the embed reports its own.
+ * 474px is what the embed renders at the source's 1060px card width. A
+ * fallback shorter than the real content makes the iframe show its own
+ * scrollbar until the postMessage resize lands. */
+.roi-frame {
+  height: 474px;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .roi-frame {
+    height: 811px;
+  }
+}
+
+@media (max-width: 560px) {
+  .roi-frame {
+    height: 1123px;
+  }
+}
+
+/* Logo strip: two copies of the row, sliding by exactly half the track. */
+.marquee-track {
+  animation: marquee 40s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 2.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 12%,
+    #000 88%,
+    transparent 100%
+  );
+}
+
+.pill-shadow {
+  box-shadow:
+    rgba(0, 0, 0, 0.07) 0px 2px 5px 0px,
+    rgba(0, 0, 0, 0.06) 0px 8px 8px 0px,
+    rgba(0, 0, 0, 0.03) 0px 18px 11px 0px,
+    rgba(0, 0, 0, 0.01) 0px 33px 13px 0px,
+    rgba(0, 0, 0, 0) 0px 51px 14px 0px;
 }

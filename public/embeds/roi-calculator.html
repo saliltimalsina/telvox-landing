@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Telvox ROI calculator</title>
+<!--
+  The ROI calculator. The arithmetic comes from components/RoiCalculator.js in
+  the Next.js app at Downloads/website/telvox-app -- both copies quote numbers
+  to the same customers, so a change to AUTOMATION_RATE, TIME_REDUCTION or the
+  payroll cap belongs in both. The presentation does not: the app is dark and
+  scrolls, this sits on a white-to-pink mesh gradient inside a fixed Framer
+  card and has to fit it in one screen.
+
+  What changed from the app's design, and why:
+
+  * Its gauge was a 112-radius arc drawn from a centre above the viewBox --
+    a deep bowl, clipped by the panel corners, reading as a swoosh rather than
+    a measure. Replaced with a semicircular dial that has its scale labelled
+    (0% to FULL_GAUGE_OFFSET), so the arc's position means something.
+  * Sliders are a 6px track with a thumb, and the value moved up into the
+    label row. Three 48px gradient pills stacked was a lot of ink for three
+    numbers, and cost ~90px of height.
+  * The agent bands are one segmented control rather than five loose pills.
+  * The four separate result readouts became a 2x2 tile grid, which fits the
+    frame's wide, short proportions.
+  * The app's resolution-time slider is fixed at RESOLUTION_MINUTES and stated
+    in the assumption line -- it is the input a visitor is least likely to know
+    offhand, and the frame has no room for a fourth control.
+  * The salary input became an hourly agent cost -- Telvox customers staff
+    contact centres with hourly contractors/BPO seats as often as salaried
+    agents, and it drops the fixed-160-hour-month assumption a "monthly
+    salary" implies. The default (70/hr) is close to but not identical to
+    the old $11,000/mo (68.75/hr equivalent), so the headline example
+    numbers moved slightly. THE APP'S COPY STILL SAYS "SALARY" -- mirror
+    this rename there too.
+  * The computed readouts (everything but the slider values, which should
+    feel instant, not lagged) animate through changes via the self-hosted
+    number-flow custom element at assets/js/number-flow/, rather than
+    snapping straight to the new number.
+
+  Height is the binding constraint: ~460px at the card's 1060px width against
+  the 580px Framer sized the box for. Anything added here costs height, and an
+  inner scrollbar reads as broken. Re-measure before shipping.
+
+  The page reports its own height to the parent (postMessage
+  "telvox:roi-height"); assets/js/roi-embed-autosize.js sizes the iframe from
+  it, and assets/css/roi-calculator.css carries fallbacks if it never lands.
+-->
+<style>
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(/assets/fonts/google/s/geist/v5/gyByhwUxId8gMEwcGFU.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url(/assets/fonts/google/s/plusjakartasans/v12/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yw.woff2) format('woff2');
+}
+
+:root {
+  --ink: #171034;
+  --muted: #7d7e80;
+  --brand-a: #a21ee8;
+  --brand-b: #f239a0;
+  --brand: linear-gradient(90deg, var(--brand-a) 0%, var(--brand-b) 100%);
+  --panel: rgba(255, 255, 255, .58);
+  --line: rgba(23, 16, 52, .08);
+  --sunken: rgba(23, 16, 52, .07);
+  --label: rgba(23, 16, 52, .45);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  /* transparent so the card's mesh gradient behind the iframe shows through */
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.roi {
+  display: grid;
+  grid-template-columns: 0.86fr 1fr;
+  align-items: center;
+  gap: 48px;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 34px 44px;
+}
+
+.roi > * { min-width: 0; }
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  background: var(--brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lede {
+  margin-top: 8px;
+  max-width: 24em;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* --- inputs ----------------------------------------------------------- */
+
+.controls { margin-top: 26px; display: flex; flex-direction: column; gap: 20px; }
+
+.control-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.control-head .name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(23, 16, 52, .68);
+}
+
+.control-head .value {
+  flex: none;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+
+/* A 6px rail with the fill painted on a child, and a real range input on top
+ * of it -- transparent track, styled thumb -- so keyboard and touch behaviour
+ * stay native. */
+.slider { position: relative; display: flex; align-items: center; height: 22px; }
+
+.rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sunken);
+  overflow: hidden;
+}
+
+.rail .fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width .1s linear;
+}
+
+.slider input[type=range] {
+  position: relative;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--brand-b);
+  box-shadow: 0 2px 7px rgba(162, 30, 232, .4);
+}
+
+.slider input[type=range]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--brand-b);
+  box-shadow: 0 2px 7px rgba(162, 30, 232, .4);
+}
+
+.slider input[type=range]:focus-visible {
+  outline: 2px solid rgba(162, 30, 232, .5);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--sunken);
+}
+
+.segmented button {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(23, 16, 52, .45);
+  cursor: pointer;
+  transition: color .18s, background .18s;
+}
+
+.segmented button:hover { color: rgba(23, 16, 52, .72); }
+
+.segmented button[aria-pressed=true] {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(162, 30, 232, .28);
+}
+
+.assumption {
+  margin-top: 18px;
+  max-width: 32em;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(23, 16, 52, .36);
+}
+
+/* --- results ---------------------------------------------------------- */
+
+.results {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 28px 30px;
+}
+
+.hero .amount {
+  font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
+  font-size: clamp(2rem, 3.9vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero .caption {
+  margin-top: 9px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.hero .aside { margin-top: 7px; font-size: 12.5px; color: var(--muted); }
+
+/* The dial: a labelled semicircle. Full sweep is FULL_GAUGE_OFFSET of payroll,
+ * which the end labels state, so the arc's position is readable. */
+.dial { position: relative; flex: none; width: 46%; max-width: 218px; }
+.dial svg { display: block; width: 100%; }
+
+.dial-readout {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
+  text-align: center;
+  line-height: 1;
+}
+
+.dial-readout .pct {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dial-readout .of {
+  display: block;
+  margin-top: 5px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
+
+.tile { padding: 17px 30px 18px; }
+.tile:nth-child(2n) { border-left: 1px solid var(--line); }
+.tile:nth-child(n+3) { border-top: 1px solid var(--line); }
+
+.tile dt {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.tile dd {
+  margin-top: 5px;
+  font-family: 'Plus Jakarta Sans', 'Geist', sans-serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile .note { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+/* --- narrow ----------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .roi { grid-template-columns: 1fr; align-items: start; gap: 28px; padding: 28px; }
+  .hero { padding: 24px 26px; }
+  .tile { padding: 16px 26px; }
+}
+
+@media (max-width: 560px) {
+  .roi { padding: 24px 18px; }
+  .segmented button { padding: 8px 2px; font-size: 11px; }
+  .hero { flex-direction: column-reverse; align-items: center; text-align: center; gap: 18px; }
+  .dial { width: 100%; max-width: 200px; }
+  .tiles { grid-template-columns: 1fr; }
+  .tile:nth-child(2n) { border-left: none; }
+  .tile:nth-child(n+2) { border-top: 1px solid var(--line); }
+  .hero, .tile { padding-left: 22px; padding-right: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="roi">
+  <div>
+    <p class="eyebrow">ROI Calculator</p>
+    <p class="lede">Discover how much money and time Telvox puts back into your business.</p>
+
+    <div class="controls">
+      <div data-control="conversations">
+        <div class="control-head">
+          <span class="name">Customer Conversations (Monthly)</span>
+          <span class="value"></span>
+        </div>
+        <div class="slider">
+          <div class="rail"><div class="fill"></div></div>
+          <input type="range" min="500" max="50000" step="500" value="25000"
+                 aria-label="Customer Conversations (Monthly)">
+        </div>
+      </div>
+
+      <div>
+        <div class="control-head">
+          <span class="name">Number of Agents</span>
+          <span class="value" data-out="agentCount"></span>
+        </div>
+        <div class="segmented" role="group" aria-label="Number of Agents"></div>
+      </div>
+
+      <div data-control="hourlyCost">
+        <div class="control-head">
+          <span class="name">Agent Cost (Per Hour)</span>
+          <span class="value"></span>
+        </div>
+        <div class="slider">
+          <div class="rail"><div class="fill"></div></div>
+          <input type="range" min="5" max="100" step="2.5" value="70"
+                 aria-label="Agent Cost (Per Hour)">
+        </div>
+      </div>
+    </div>
+
+    <p class="assumption" data-out="assumption"></p>
+  </div>
+
+  <div class="results">
+    <div class="hero">
+      <div>
+        <p class="amount"><number-flow data-out="annualSavings"></number-flow></p>
+        <p class="caption">Year 1 Savings</p>
+        <p class="aside">That's $<number-flow data-out="monthlySavings"></number-flow> saved every month!</p>
+      </div>
+
+      <div class="dial">
+        <svg viewBox="0 0 200 122" aria-hidden="true">
+          <defs>
+            <linearGradient id="roi-arc" x1="0%" y1="100%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#a21ee8"></stop>
+              <stop offset="100%" stop-color="#f239a0"></stop>
+            </linearGradient>
+          </defs>
+          <path data-dial="track" fill="none" stroke="rgba(23,16,52,.09)"
+                stroke-width="14" stroke-linecap="round"></path>
+          <path data-dial="value" fill="none" stroke="url(#roi-arc)"
+                stroke-width="14" stroke-linecap="round"></path>
+          <text x="22" y="119" text-anchor="middle" fill="rgba(23,16,52,.3)" font-size="8.5"
+                font-weight="700" font-family="Geist, sans-serif">0%</text>
+          <text x="178" y="119" text-anchor="middle" fill="rgba(23,16,52,.3)" font-size="8.5"
+                font-weight="700" font-family="Geist, sans-serif" data-out="dialMax"></text>
+        </svg>
+        <p class="dial-readout">
+          <span class="pct"><number-flow data-out="payrollOffset"></number-flow></span>
+          <span class="of">of payroll</span>
+        </p>
+      </div>
+    </div>
+
+    <dl class="tiles">
+      <div class="tile">
+        <dt>Automated Tickets / Month</dt>
+        <dd><number-flow data-out="automatedTickets"></number-flow></dd>
+        <p class="note" data-out="automationRate"></p>
+      </div>
+      <div class="tile">
+        <dt>5-Year Projection</dt>
+        <dd><number-flow data-out="fiveYear"></number-flow></dd>
+        <p class="note">At today's volume</p>
+      </div>
+      <div class="tile">
+        <dt>Hours Saved / Year</dt>
+        <dd><number-flow data-out="hoursSaved"></number-flow></dd>
+        <p class="note" data-out="timeReduction"></p>
+      </div>
+      <div class="tile">
+        <dt>Agents Reassigned</dt>
+        <dd><number-flow data-out="agentsReassigned"></number-flow></dd>
+        <p class="note">To higher-value work</p>
+      </div>
+    </dl>
+  </div>
+</div>
+
+<script type="module" src="/assets/js/number-flow/index.mjs"></script>
+<script type="module">
+(function () {
+  "use strict";
+
+  // --- Model ---------------------------------------------------------
+  // One story, end to end: Telvox absorbs a share of the conversation volume,
+  // which frees agent hours, which frees whole agents, which is the money
+  // saved. Keep these in step with components/RoiCalculator.js in telvox-app.
+  var AUTOMATION_RATE = 0.85;   // conversations handled without a human
+  var TIME_REDUCTION = 0.35;    // share of total handling time given back
+  var AGENT_HOURS_PER_MONTH = 160;
+  var AGENT_HOURS_PER_YEAR = AGENT_HOURS_PER_MONTH * 12;
+  var FULL_GAUGE_OFFSET = 0.35; // payroll offset that fills the dial
+
+  // A slider in the app; fixed here so the widget fits its frame. It is the
+  // input a visitor is least likely to know offhand, and the assumption line
+  // below the controls says what it is.
+  var RESOLUTION_MINUTES = 16;
+
+  var AGENT_BANDS = [
+    { label: "1–10", count: 5 },
+    { label: "11–25", count: 18 },
+    { label: "26–50", count: 38 },
+    { label: "51–100", count: 75 },
+    { label: "100+", count: 150 }
+  ];
+
+  // Hourly, not a monthly salary: Telvox customers as often staff contact
+  // centres with contractors or BPO seats billed per hour as they do
+  // salaried agents, and it drops the assumption that everyone works a
+  // fixed 160-hour month. Must match the slider's own default value= (the
+  // browser silently snaps an initial value to the nearest step, so this
+  // and the markup can drift out of sync if changed separately).
+  var state = { conversations: 25000, bandIndex: 3, hourlyCost: 70 };
+
+  function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+  function compute(s) {
+    var agents = AGENT_BANDS[s.bandIndex].count;
+    var annualPayroll = agents * s.hourlyCost * AGENT_HOURS_PER_YEAR;
+
+    var automatedTickets = Math.round(s.conversations * AUTOMATION_RATE);
+    var handlingHoursPerYear = s.conversations * (RESOLUTION_MINUTES / 60) * 12;
+    var hoursSaved = Math.round(handlingHoursPerYear * TIME_REDUCTION);
+
+    // Freed hours converted to whole agents, capped by the team you have.
+    var agentsReassigned = Math.min(agents, Math.round(hoursSaved / AGENT_HOURS_PER_YEAR));
+
+    // You can never save more than the payroll you are paying.
+    var rawSavings = hoursSaved * s.hourlyCost;
+    var annualSavings = Math.round(Math.min(rawSavings, annualPayroll) / 1000) * 1000;
+
+    var payrollOffset = annualSavings / annualPayroll;
+
+    return {
+      agents: agents,
+      automatedTickets: automatedTickets,
+      hoursSaved: hoursSaved,
+      agentsReassigned: agentsReassigned,
+      annualSavings: annualSavings,
+      monthlySavings: annualSavings / 12,
+      fiveYear: annualSavings * 5,
+      payrollOffsetPct: Math.round(payrollOffset * 100),
+      dial: clamp(payrollOffset / FULL_GAUGE_OFFSET, 0.02, 1)
+    };
+  }
+
+  // --- Formatting ----------------------------------------------------
+  function nf(n) { return Math.round(n).toLocaleString("en-US"); }
+
+  function compact(v) {
+    if (v < 1000) return String(v);
+    var k = v / 1000;
+    return (Number.isInteger(k) ? k : Number(k.toFixed(2))) + "K";
+  }
+
+  var FORMAT = {
+    conversations: compact,
+    hourlyCost: function (v) { return "$" + compact(v) + "/hr"; }
+  };
+
+  // --- Dial geometry -------------------------------------------------
+  // A true semicircle: centre (100, 100), swept left to right over the top.
+  var CX = 100, CY = 100, R = 78;
+  var ARC = "M " + (CX - R) + " " + CY + " A " + R + " " + R + " 0 0 1 " + (CX + R) + " " + CY;
+  var ARC_LENGTH = Math.PI * R;
+
+  var track = document.querySelector('[data-dial="track"]');
+  var dial = document.querySelector('[data-dial="value"]');
+  track.setAttribute("d", ARC);
+  dial.setAttribute("d", ARC);
+  dial.setAttribute("stroke-dasharray", ARC_LENGTH);
+  dial.setAttribute("stroke-dashoffset", ARC_LENGTH);
+  dial.style.transition = "stroke-dashoffset .55s cubic-bezier(.16,1,.3,1)";
+
+  // --- Wiring --------------------------------------------------------
+  var out = {};
+  Array.prototype.forEach.call(document.querySelectorAll("[data-out]"), function (el) {
+    out[el.getAttribute("data-out")] = el;
+  });
+
+  // Every computed readout animates through its new value on change rather
+  // than snapping, via the self-hosted number-flow custom element (see
+  // assets/js/number-flow/). Slider readouts stay plain text -- they mirror
+  // a drag in progress, so they should feel instant, not lagged.
+  var NUMBER_FLOW = {
+    annualSavings: { prefix: "$" },
+    monthlySavings: {},
+    payrollOffset: { suffix: "%" },
+    automatedTickets: {},
+    fiveYear: { prefix: "$" },
+    hoursSaved: {},
+    agentsReassigned: {}
+  };
+  Object.keys(NUMBER_FLOW).forEach(function (key) {
+    var el = out[key];
+    var opts = NUMBER_FLOW[key];
+    el.numberPrefix = opts.prefix || "";
+    el.numberSuffix = opts.suffix || "";
+    el.format = { maximumFractionDigits: 0 };
+  });
+
+  out.dialMax.textContent = Math.round(FULL_GAUGE_OFFSET * 100) + "%";
+  out.automationRate.textContent = Math.round(AUTOMATION_RATE * 100) + "% of all volume";
+  out.timeReduction.textContent = Math.round(TIME_REDUCTION * 100) + "% time reduction";
+  out.assumption.textContent =
+    "Assumes a " + RESOLUTION_MINUTES + "-minute average handling time per conversation.";
+
+  var segmented = document.querySelector(".segmented");
+  AGENT_BANDS.forEach(function (band, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = band.label;
+    b.setAttribute("aria-pressed", String(i === state.bandIndex));
+    b.addEventListener("click", function () {
+      state.bandIndex = i;
+      Array.prototype.forEach.call(segmented.children, function (el, j) {
+        el.setAttribute("aria-pressed", String(j === i));
+      });
+      render();
+    });
+    segmented.appendChild(b);
+  });
+
+  var sliders = Array.prototype.map.call(
+    document.querySelectorAll("[data-control]"),
+    function (wrap) {
+      var key = wrap.getAttribute("data-control");
+      var input = wrap.querySelector("input");
+      var s = {
+        key: key,
+        input: input,
+        fill: wrap.querySelector(".fill"),
+        readout: wrap.querySelector(".control-head .value")
+      };
+      input.addEventListener("input", function () {
+        state[key] = Number(input.value);
+        paintSlider(s);
+        render();
+      });
+      return s;
+    }
+  );
+
+  function paintSlider(s) {
+    var min = Number(s.input.min), max = Number(s.input.max);
+    var pct = ((Number(s.input.value) - min) / (max - min)) * 100;
+    s.fill.style.width = pct + "%";
+    s.readout.textContent = FORMAT[s.key](Number(s.input.value));
+  }
+
+  function render() {
+    var r = compute(state);
+
+    out.agentCount.textContent = nf(r.agents) + " agents";
+    out.annualSavings.update(r.annualSavings);
+    out.monthlySavings.update(Math.round(r.monthlySavings));
+    out.payrollOffset.update(r.payrollOffsetPct);
+    out.automatedTickets.update(r.automatedTickets);
+    out.fiveYear.update(r.fiveYear);
+    out.hoursSaved.update(r.hoursSaved);
+    out.agentsReassigned.update(r.agentsReassigned);
+
+    dial.setAttribute("stroke-dashoffset", ARC_LENGTH * (1 - r.dial));
+    postHeight();
+  }
+
+  // --- Height handshake ----------------------------------------------
+  // The parent iframe has a fixed height per breakpoint in Framer's CSS, which
+  // cannot know how tall this content is. Tell it.
+  var lastHeight = 0;
+
+  function postHeight(force) {
+    var h = Math.ceil(document.querySelector(".roi").getBoundingClientRect().height);
+    if (!h || (h === lastHeight && force !== true)) return;
+    lastHeight = h;
+    try {
+      parent.postMessage({ type: "telvox:roi-height", height: h }, "*");
+    } catch (e) { /* cross-origin parent: fall back to the CSS heights */ }
+  }
+
+  sliders.forEach(paintSlider);
+  render();
+
+  window.addEventListener("message", function (event) {
+    /* the parent asking again, in case it started after our first message */
+    if (event.data && event.data.type === "telvox:roi-measure") postHeight(true);
+  });
+
+  window.addEventListener("resize", postHeight);
+  window.addEventListener("load", postHeight);
+  if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.querySelector(".roi"));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
+})();
+</script>
+</body>
+</html>
