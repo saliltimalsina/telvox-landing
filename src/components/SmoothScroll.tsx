@@ -43,10 +43,37 @@ export default function SmoothScroll() {
     gsap.ticker.lagSmoothing(0);
     setLenis(lenis);
 
+    // A wheel gesture that starts over one of the same-origin iframe embeds
+    // (the Industries wheel, the ROI calculator) never reaches this
+    // window's "wheel" listener at all -- iframes are a separate browsing
+    // context, so Lenis's VirtualScroll (bound to `window`) simply never
+    // sees it. The browser falls back to its own native scroll chaining for
+    // that gesture: an instant, un-eased jump instead of a lerp'd glide,
+    // which reads as the smooth scroll suddenly sticking right over those
+    // two sections. The embeds forward their wheel deltas here (see
+    // industries.html / roi-calculator.html); redispatching as a real
+    // "wheel" event lets Lenis handle it exactly like any other tick.
+    const onBridgedWheel = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const data = e.data;
+      if (!data || data.type !== "telvox:wheel") return;
+      window.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaX: data.deltaX,
+          deltaY: data.deltaY,
+          deltaMode: data.deltaMode,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    };
+    window.addEventListener("message", onBridgedWheel);
+
     return () => {
       setLenis(null);
       gsap.ticker.remove(onTick);
       lenis.destroy();
+      window.removeEventListener("message", onBridgedWheel);
     };
   }, []);
 

@@ -683,6 +683,29 @@ html, body {
   window.addEventListener("load", postHeight);
   if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.querySelector(".roi"));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
+
+  // --- Wheel handoff ---------------------------------------------------
+  // A wheel tick that starts over this card never reaches the parent
+  // window -- the iframe is its own browsing context, so the parent's
+  // Lenis (bound to `window`) never sees it. Left alone, the browser falls
+  // back to native scroll chaining for that gesture: an instant jump
+  // instead of the page's usual smooth glide, which reads as the scroll
+  // sticking right over the calculator. Forward the delta to the parent
+  // instead (see SmoothScroll.tsx), unless it isn't running Lenis either.
+  if (window.parent !== window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.addEventListener("wheel", function (event) {
+      if (event.ctrlKey) return; // pinch-zoom -- leave native
+      event.preventDefault();
+      try {
+        parent.postMessage({
+          type: "telvox:wheel",
+          deltaX: event.deltaX,
+          deltaY: event.deltaY,
+          deltaMode: event.deltaMode,
+        }, "*");
+      } catch (e) { /* cross-origin parent: fall back to native scroll */ }
+    }, { passive: false });
+  }
 })();
 </script>
 </body>

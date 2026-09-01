@@ -678,6 +678,24 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
       var max = document.documentElement.scrollHeight - window.innerHeight;
       if (max > 0) spin(Math.min(1, Math.max(0, window.scrollY / max)));
     }, { passive: true });
+  } else if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    /* Framed, with the parent's Lenis smooth-scroll running: a wheel tick
+     * that starts inside this iframe never reaches the parent window (a
+     * different browsing context), so left alone it falls back to the
+     * browser's native scroll chaining -- an instant, un-eased jump right
+     * over the wheel instead of the page's usual smooth glide. Forward the
+     * delta to the parent (see SmoothScroll.tsx) instead of letting this
+     * document handle it. */
+    window.addEventListener("wheel", function (event) {
+      if (event.ctrlKey) return; // pinch-zoom -- leave native
+      event.preventDefault();
+      parent.postMessage({
+        type: "telvox:wheel",
+        deltaX: event.deltaX,
+        deltaY: event.deltaY,
+        deltaMode: event.deltaMode,
+      }, window.location.origin);
+    }, { passive: false });
   }
 })();
 </script>
