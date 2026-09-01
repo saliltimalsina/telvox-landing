@@ -498,14 +498,15 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
     rgba(0, 0, 0, 0.03) 0px 18px 11px 0px;
 }
 
-/* Pulls the whole intro block (pill + "Built for every industry" + logo)
- * closer to the top of the dome -- the pill left too much empty white space
- * above it at the original top-[10px]/95px/70px/110px offsets. Overrides
- * those Tailwind utilities (same selector specificity, later in the
- * cascade) rather than editing them, since a new pixel value here wouldn't
- * exist in the ahead-of-time compiled sheet. */
-.tvx-industries-intro { top: 100px; }
-@media (min-width: 640px) { .tvx-industries-intro { top: 132px; } }
+/* Vertical offset of the whole intro block (pill + "Built for every
+ * industry" + logo) within the dome. Overrides the compiled Tailwind
+ * utilities (top-[10px]/95px/70px/110px) at the same specificity, later in
+ * the cascade. On desktop the block is pushed well down so the pill clears
+ * the white dome disc; the phone / tablet breakpoints (base, sm) sit much
+ * higher -- the dome renders far larger there relative to the frame, so the
+ * desktop offset dropped the lockup into the middle of a big white field. */
+.tvx-industries-intro { top: 40px; }
+@media (min-width: 640px) { .tvx-industries-intro { top: 28px; } }
 @media (min-width: 1024px) { .tvx-industries-intro { top: 104px; } }
 @media (min-width: 1536px) { .tvx-industries-intro { top: 144px; } }
 </style>
