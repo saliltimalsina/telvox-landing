@@ -2,6 +2,49 @@
 
 import { MessageCircle } from "lucide-react";
 
+/* Brand marks are inlined — lucide dropped them in v1. */
+function XIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.9 2H22l-7.3 8.3L23 22h-6.6l-5.2-6.8L5.3 22H2.2l7.8-8.9L1.6 2h6.8l4.7 6.2L18.9 2Zm-1.1 18h1.7L7.3 3.8H5.5L17.8 20Z" />
+    </svg>
+  );
+}
+
+function InstagramIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="17.5" x2="17.5" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM2.4 21.5h5.2V9.6H2.4v11.9Zm7.9 0h5.18v-6.4c0-3.42 4.42-3.7 4.42 0v6.4h5.1v-8.2c0-7.9-8.5-7.6-9.52-3.72V9.6H10.3v11.9Z" />
+    </svg>
+  );
+}
+
+/* Icons only — no links yet; the accounts aren't live. */
+const SOCIALS = [
+  { label: "X", icon: XIcon },
+  { label: "Instagram", icon: InstagramIcon },
+  { label: "LinkedIn", icon: LinkedinIcon },
+];
+
 const EXPLORE = [
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#price" },
@@ -17,13 +60,28 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden px-5 pt-4">
       <div className="mx-auto max-w-[1200px]">
-        <div className="flex items-center py-8">
+        <div className="flex flex-col items-start gap-5 py-8 min-[810px]:flex-row min-[810px]:items-center min-[810px]:justify-between">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/logo.webp"
             alt="Telvox"
             className="h-[38px] w-auto object-contain"
           />
+          <div className="flex items-center gap-3">
+            <span className="text-[15px] text-black/60">Social Media</span>
+            {SOCIALS.map((s) => {
+              const Icon = s.icon;
+              return (
+                <span
+                  key={s.label}
+                  aria-label={s.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-black/10 text-[#171034]"
+                >
+                  <Icon size={16} />
+                </span>
+              );
+            })}
+          </div>
         </div>
 
         <hr className="border-black/[.08]" />

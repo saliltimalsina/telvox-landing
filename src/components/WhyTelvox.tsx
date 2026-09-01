@@ -1,24 +1,39 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import {
+  Building2,
+  ChartLine,
+  Check,
+  Clock,
+  FileText,
+  Languages,
+  type LucideIcon,
+  PhoneCall,
+  Plug,
+  Send,
+  ShieldCheck,
+  Target,
+  UserRoundCheck,
+  X,
+} from "lucide-react";
 import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
 import { EASE } from "@/lib/site";
 
 /** `others` is what the competition offers; Telvox has every row. */
-const ROWS: { label: string; others: boolean }[] = [
-  { label: "Built For Institutions", others: true },
-  { label: "Multilingual By Design", others: false },
-  { label: "2 Rings Or Less", others: true },
-  { label: "24/7, No Downtime", others: true },
-  { label: "100% Transcribed & Visible", others: true },
-  { label: "Fits Your Existing Stack", others: false },
-  { label: "Full Sentiment Analytics", others: true },
-  { label: "Outbound At Scale", others: false },
-  { label: "Automatic Lead Scoring", others: false },
-  { label: "Instant Human Handoff", others: false },
-  { label: "Enterprise-Grade Reliability", others: false },
+const ROWS: { label: string; icon: LucideIcon; others: boolean }[] = [
+  { label: "Built For Institutions", icon: Building2, others: true },
+  { label: "Multilingual By Design", icon: Languages, others: false },
+  { label: "2 Rings Or Less", icon: PhoneCall, others: true },
+  { label: "24/7, No Downtime", icon: Clock, others: true },
+  { label: "100% Transcribed & Visible", icon: FileText, others: true },
+  { label: "Fits Your Existing Stack", icon: Plug, others: false },
+  { label: "Full Sentiment Analytics", icon: ChartLine, others: true },
+  { label: "Outbound At Scale", icon: Send, others: false },
+  { label: "Automatic Lead Scoring", icon: Target, others: false },
+  { label: "Instant Human Handoff", icon: UserRoundCheck, others: false },
+  { label: "Enterprise-Grade Reliability", icon: ShieldCheck, others: false },
 ];
 
 export default function WhyTelvox() {
@@ -43,17 +58,26 @@ export default function WhyTelvox() {
           <div className="flex">
             {/* feature names */}
             <div className="flex-1">
-              <div className="flex h-[60px] items-center px-3 text-[13px] font-medium text-[#171034] min-[810px]:px-6 min-[810px]:text-[15px]">
+              <div className="flex h-[60px] items-center gap-2.5 pl-1 pr-3 text-[13px] font-medium text-[#171034] min-[810px]:pl-2 min-[810px]:pr-6 min-[810px]:text-[15px]">
+                <span className="w-[18px] shrink-0" aria-hidden />
                 Features
               </div>
-              {ROWS.map((r) => (
-                <div
-                  key={r.label}
-                  className="flex h-[60px] items-center border-t border-black/[.06] px-3 text-[13px] leading-tight text-[#171034] min-[810px]:px-6 min-[810px]:text-[15px]"
-                >
-                  {r.label}
-                </div>
-              ))}
+              {ROWS.map((r) => {
+                const Icon = r.icon;
+                return (
+                  <div
+                    key={r.label}
+                    className="flex h-[60px] items-center gap-2.5 border-t border-black/[.06] pl-1 pr-3 text-[13px] leading-tight text-[#171034] min-[810px]:pl-2 min-[810px]:pr-6 min-[810px]:text-[15px]"
+                  >
+                    <Icon
+                      size={18}
+                      strokeWidth={2}
+                      className="shrink-0 text-[#a21ee8]"
+                    />
+                    {r.label}
+                  </div>
+                );
+              })}
             </div>
 
             {/* others */}

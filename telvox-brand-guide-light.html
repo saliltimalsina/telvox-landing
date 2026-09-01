@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telvox Brand Guide — Light</title>
+<link href="https://fonts.googleapis.com/css2?family=Mansfield:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Brand colours — unchanged. These stay as the source of truth for
+       swatches, gradients and decorative fills. */
+    --black:        #000000;
+    --deep-navy:    #0D0B1E;
+    --indigo:       #1A1040;
+    --purple-dark:  #3B1F6E;
+    --purple:       #7B3FC4;
+    --violet:       #9B4DFF;
+    --magenta:      #C42092;
+    --pink:         #E040A0;
+    --hot-pink:     #FF2D78;
+    --cyan:         #00D4FF;
+    --cyan-light:   #7AEEFF;
+    --white:        #FFFFFF;
+    --off-white:    #F0EEF8;
+    --gray:         #8B8BA0;
+
+    /* Light-mode surface + ink tokens. Telvox is a dark-first brand, so
+       for a light rendering the neon accents (cyan especially) can't
+       carry text — they fail contrast on white. Signal Purple becomes
+       the text accent; cyan is kept for fills, borders and gradients
+       only. */
+    --page-bg:      #FBFAFF;
+    --surface:      #FFFFFF;
+    --surface-2:    #F4F1FB;
+    --ink:          #171034;
+    --ink-muted:    #6B6683;
+    --accent:       #7B3FC4;   /* Signal Purple — labels, links, ticks   */
+    --accent-2:     #C42092;   /* Pulse Magenta — "don't" / secondary    */
+    --border:       rgba(23,16,52,0.12);
+    --hairline:     rgba(23,16,52,0.06);
+  }
+
+  body {
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: 'Mansfield', 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header .logo-image { max-height: 90px; }
+
+  header {
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 60px 40px 80px;
+    text-align: center;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    /* Same three-point glow as the dark guide, dialled way back so it
+       reads as a tint on paper rather than light in a void. */
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(196,32,146,0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 70% at 20% 60%, rgba(123,63,196,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 50% at 50% 10%, rgba(0,212,255,0.10) 0%, transparent 50%),
+      var(--page-bg);
+    z-index: 0;
+  }
+  header::after {
+    content: '';
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 1px;
+    background: var(--hairline);
+    z-index: 1;
+  }
+  header * { position: relative; z-index: 1; }
+  header .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    opacity: 0.85;
+  }
+  header h1 {
+    font-size: clamp(42px, 8vw, 80px);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    font-size: 14px;
+    color: var(--ink-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 18px;
+  }
+  .tagline-badge {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 8px 20px;
+    border: 1px solid rgba(123,63,196,0.30);
+    border-radius: 40px;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    background: rgba(123,63,196,0.06);
+  }
+
+  /* ── LAYOUT ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 0 32px 80px; }
+
+  section { margin-bottom: 72px; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(123,63,196,0.35), transparent);
+  }
+
+  /* ── COLOR PALETTE ── */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .swatch:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(23,16,52,0.14);
+  }
+  .swatch-color {
+    height: 90px;
+    width: 100%;
+  }
+  .swatch-info {
+    padding: 12px 14px;
+  }
+  .swatch-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .swatch-hex {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.05em;
+  }
+  .swatch-role {
+    font-size: 10px;
+    color: var(--ink-muted);
+    margin-top: 2px;
+    opacity: 0.8;
+  }
+
+  /* Primary row */
+  .palette-primary { margin-bottom: 24px; }
+  .palette-primary .palette-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  .palette-primary .swatch-color { height: 120px; }
+
+  /* ── GRADIENT SECTION ── */
+  .gradient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .gradient-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .gradient-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(23,16,52,0.14);
+  }
+  .gradient-preview {
+    height: 120px;
+  }
+  .gradient-info {
+    padding: 14px 16px;
+    background: var(--surface);
+  }
+  .gradient-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .gradient-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .type-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .type-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: start;
+    padding: 24px;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+  }
+  .type-meta .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .type-meta .spec {
+    font-size: 11px;
+    color: var(--ink-muted);
+    line-height: 1.8;
+  }
+
+  /* ── LOGO USAGE ── */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .logo-card {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .logo-bg {
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+  }
+  .logo-bg .logo-text {
+    font-size: 42px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    font-family: 'Mansfield', 'DM Sans', sans-serif;
+  }
+  .logo-caption {
+    padding: 12px 16px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--surface-2);
+  }
+
+  /* ── VOICE & MOTION ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .info-card {
+    padding: 28px;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+  }
+  .info-card h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .info-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .info-card ul li {
+    font-size: 13px;
+    color: var(--ink-muted);
+    padding: 6px 0 6px 14px;
+    border-bottom: 1px solid var(--hairline);
+    position: relative;
+  }
+  .info-card ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  /* ── DO/DON'T ── */
+  .do-dont {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .do-card, .dont-card {
+    padding: 24px;
+    border-radius: 16px;
+  }
+  .do-card {
+    background: rgba(123,63,196,0.05);
+    border: 1px solid rgba(123,63,196,0.22);
+  }
+  .dont-card {
+    background: rgba(196,32,146,0.05);
+    border: 1px solid rgba(196,32,146,0.22);
+  }
+  .do-card h3 { color: var(--accent); font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .dont-card h3 { color: var(--accent-2); font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .do-card li, .dont-card li {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+    list-style: none;
+    padding-left: 16px;
+    position: relative;
+  }
+  .do-card li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); }
+  .dont-card li::before { content: '✗'; position: absolute; left: 0; color: var(--accent-2); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px 32px;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.1em;
+  }
+  footer span { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .logo-grid, .two-col, .do-dont { grid-template-columns: 1fr; }
+    .type-row { grid-template-columns: 1fr; }
+  }
+
+  .logo-image {
+    max-width: min(360px, 80%);
+    max-height: 80px;
+    object-fit: contain;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="eyebrow">Brand Identity Guidelines · 2025</div>
+  <img class="logo-image" src="https://i.ibb.co/5g0BKht9/LOGO-DARK.png" alt="Telvox Logo">
+  <p>Brand Guide</p>
+  <div class="tagline-badge">Connect. Communicate. Scale.</div>
+</header>
+
+<main>
+
+  <!-- ══ PRIMARY COLORS ══ -->
+  <section>
+    <div class="section-label">01 — Primary Color Palette</div>
+    <div class="palette-primary">
+      <div class="palette-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:#000000;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Void Black</div>
+            <div class="swatch-hex">#000000</div>
+            <div class="swatch-role">Primary Background</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#0D0B1E;"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Deep Space</div>
+            <div class="swatch-hex">#0D0B1E</div>
+            <div class="swatch-role">Dark Background</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:linear-gradient(135deg,#3B1F6E,#7B3FC4);"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Signal Purple</div>
+            <div class="swatch-hex">#7B3FC4</div>
+            <div class="swatch-role">Brand Purple</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:linear-gradient(135deg,#C42092,#E040A0);"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Pulse Magenta</div>
+            <div class="swatch-hex">#C42092</div>
+            <div class="swatch-role">Brand Magenta</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:linear-gradient(135deg,#00D4FF,#7AEEFF);"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Vox Cyan</div>
+            <div class="swatch-hex">#00D4FF</div>
+            <div class="swatch-role">Brand Cyan / Accent</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(23,16,52,0.12);"></div>
+          <div class="swatch-info">
+            <div class="swatch-name">Pure White</div>
+            <div class="swatch-hex">#FFFFFF</div>
+            <div class="swatch-role">Type / Logo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SECONDARY COLORS ══ -->
+  <section>
+    <div class="section-label">02 — Secondary & Supporting Colors</div>
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1A1040;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Nebula Indigo</div>
+          <div class="swatch-hex">#1A1040</div>
+          <div class="swatch-role">Card / Panel BG</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3B1F6E;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Dark Violet</div>
+          <div class="swatch-hex">#3B1F6E</div>
+          <div class="swatch-role">Depth / Shadows</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#9B4DFF;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Electric Violet</div>
+          <div class="swatch-hex">#9B4DFF</div>
+          <div class="swatch-role">Highlight / CTA</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E040A0;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Neon Pink</div>
+          <div class="swatch-hex">#E040A0</div>
+          <div class="swatch-role">Gradient Accent</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FF2D78;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Hot Pink</div>
+          <div class="swatch-hex">#FF2D78</div>
+          <div class="swatch-role">Alert / Energy</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#7AEEFF;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Cyan Light</div>
+          <div class="swatch-hex">#7AEEFF</div>
+          <div class="swatch-role">Glow / Shine</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F0EEF8;box-shadow:inset 0 0 0 1px rgba(23,16,52,0.08);"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Off White</div>
+          <div class="swatch-hex">#F0EEF8</div>
+          <div class="swatch-role">Body Text (Dark BG)</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#8B8BA0;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Muted Gray</div>
+          <div class="swatch-hex">#8B8BA0</div>
+          <div class="swatch-role">Secondary Text</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ GRADIENTS ══ -->
+  <section>
+    <div class="section-label">03 — Brand Gradients</div>
+    <div class="gradient-grid">
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: linear-gradient(135deg, #3B1F6E 0%, #C42092 50%, #FF2D78 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Aurora — Primary</div>
+          <div class="gradient-value">linear-gradient(135deg, #3B1F6E 0%, #C42092 50%, #FF2D78 100%)</div>
+        </div>
+      </div>
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: linear-gradient(135deg, #0D0B1E 0%, #3B1F6E 40%, #C42092 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Cosmos — Background</div>
+          <div class="gradient-value">linear-gradient(135deg, #0D0B1E 0%, #3B1F6E 40%, #C42092 100%)</div>
+        </div>
+      </div>
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: linear-gradient(90deg, #7B3FC4 0%, #00D4FF 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Signal — Accent</div>
+          <div class="gradient-value">linear-gradient(90deg, #7B3FC4 0%, #00D4FF 100%)</div>
+        </div>
+      </div>
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: radial-gradient(ellipse at 70% 50%, #C42092 0%, #3B1F6E 50%, #0D0B1E 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Nebula — Radial</div>
+          <div class="gradient-value">radial-gradient(ellipse at 70% 50%, #C42092 0%, #3B1F6E 50%, #0D0B1E 100%)</div>
+        </div>
+      </div>
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: linear-gradient(180deg, #9B4DFF 0%, #C42092 50%, #FF2D78 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Pulse — Vertical</div>
+          <div class="gradient-value">linear-gradient(180deg, #9B4DFF 0%, #C42092 50%, #FF2D78 100%)</div>
+        </div>
+      </div>
+      <div class="gradient-card">
+        <div class="gradient-preview" style="background: linear-gradient(135deg, #00D4FF 0%, #7B3FC4 60%, #0D0B1E 100%);"></div>
+        <div class="gradient-info">
+          <div class="gradient-name">Vox Orb — Icon BG</div>
+          <div class="gradient-value">linear-gradient(135deg, #00D4FF 0%, #7B3FC4 60%, #0D0B1E 100%)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TYPOGRAPHY ══ -->
+  <section>
+    <div class="section-label">04 — Typography</div>
+    <div class="type-showcase">
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Display</div>
+          <div class="spec">DM Sans Light<br>Weight: 300<br>Tracking: -0.02em<br>Use: Headings, Logo</div>
+        </div>
+        <div class="type-sample">
+          <div style="font-size:52px;font-weight:300;letter-spacing:-0.02em;line-height:1.1;color:#171034;">telvox</div>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Headline</div>
+          <div class="spec">DM Sans Medium<br>Weight: 500<br>Tracking: -0.01em<br>Use: Section titles</div>
+        </div>
+        <div class="type-sample">
+          <div style="font-size:32px;font-weight:500;letter-spacing:-0.01em;color:#171034;">Connect. Communicate. Scale.</div>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Body</div>
+          <div class="spec">DM Sans Regular<br>Weight: 400<br>Size: 15–17px<br>Line-height: 1.7</div>
+        </div>
+        <div class="type-sample">
+          <div style="font-size:16px;font-weight:400;line-height:1.7;color:#6B6683;max-width:480px;">Telvox delivers enterprise-grade communication infrastructure with the agility of a modern platform. Built for scale, designed for clarity.</div>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="label">Mono / Labels</div>
+          <div class="spec">DM Mono<br>Weight: 400–500<br>Size: 10–12px<br>Use: Tags, codes</div>
+        </div>
+        <div class="type-sample">
+          <div style="font-family:'DM Mono',monospace;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:#7B3FC4;">#00D4FF — Vox Cyan — Accent</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ LOGO USAGE ══ -->
+  <section>
+    <div class="section-label">05 — Logo Usage</div>
+    <div class="logo-grid">
+      <div class="logo-card">
+        <div class="logo-bg" style="background:#000;">
+          <img class="logo-image" src="https://i.ibb.co/84zcvYnV/MAIN-LOGO.png" alt="Telvox Logo">
+        </div>
+        <div class="logo-caption">On black — Primary usage</div>
+      </div>
+      <div class="logo-card">
+        <div class="logo-bg" style="background:linear-gradient(135deg,#1A1040,#3B1F6E 50%,#C42092);">
+          <img class="logo-image" src="https://i.ibb.co/84zcvYnV/MAIN-LOGO.png" alt="Telvox Logo">
+        </div>
+        <div class="logo-caption">On gradient — Brand usage</div>
+      </div>
+      <div class="logo-card">
+        <div class="logo-bg" style="background:#F0EEF8;"><img class="logo-image" src="https://i.ibb.co/5g0BKht9/LOGO-DARK.png" alt="Telvox Dark Logo"></div>
+        <div class="logo-caption">On light — Primary usage (light UI)</div>
+      </div>
+      <div class="logo-card">
+        <div class="logo-bg" style="background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(23,16,52,0.10);"><img class="logo-image" src="https://i.ibb.co/5g0BKht9/LOGO-DARK.png" alt="Telvox Dark Logo"></div>
+        <div class="logo-caption">On white — Reversed usage</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ DO / DON'T ══ -->
+  <section>
+    <div class="section-label">06 — Do's & Don'ts</div>
+    <div class="do-dont">
+      <div class="do-card">
+        <h3>Do</h3>
+        <ul>
+          <li>Use the dark logo on light or off-white backgrounds</li>
+          <li>Maintain lowercase "telvox" wordmark</li>
+          <li>Use the orb as the signature icon</li>
+          <li>Apply Signal Purple as the accent on light UI</li>
+          <li>Keep generous whitespace around logo</li>
+          <li>Use DM Sans for all brand typography</li>
+        </ul>
+      </div>
+      <div class="dont-card">
+        <h3>Don't</h3>
+        <ul>
+          <li>Capitalize or alter the wordmark</li>
+          <li>Place the white logo on light backgrounds</li>
+          <li>Set body copy in neon cyan on white — it fails contrast</li>
+          <li>Stretch or distort proportions</li>
+          <li>Use off-brand colors or fonts</li>
+          <li>Apply drop shadows to the wordmark</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ VOICE & MOTION ══ -->
+  <section>
+    <div class="section-label">07 — Brand Voice & Motion</div>
+    <div class="two-col">
+      <div class="info-card">
+        <h3>Brand Voice</h3>
+        <ul>
+          <li>Confident but not arrogant</li>
+          <li>Technical clarity, human warmth</li>
+          <li>Concise — every word earns its place</li>
+          <li>Future-forward, not jargon-heavy</li>
+          <li>Empowering, never condescending</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>Motion Principles</h3>
+        <ul>
+          <li>Orb pulses: slow, breathing rhythm</li>
+          <li>Gradients shift softly — never flash</li>
+          <li>Transitions: ease-in-out, 300–500ms</li>
+          <li>Particle trails follow cyan → magenta</li>
+          <li>Hover states: gentle glow uplift</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  telvox — Brand Guide <span>·</span> Connect. Communicate. Scale. <span>·</span> © 2025
+</footer>
+
+</body>
+</html>
