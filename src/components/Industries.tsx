@@ -23,17 +23,32 @@ export default function Industries() {
     let queued = false;
     let sent = -1;
 
+    // getBoundingClientRect() forces a synchronous layout recalculation.
+    // post() used to call it on every scroll frame for the whole 300vh this
+    // section is pinned for -- a sustained forced reflow on every tick,
+    // unique to this section, and the real remaining cause of the jank here.
+    // Measured once (and re-measured only on load/resize/actual size
+    // changes) instead; post() then only reads window.scrollY, which is
+    // free.
+    let top = 0;
+    let height = 0;
+    const measure = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      top = rect.top + window.scrollY;
+      height = rect.height;
+    };
+
     const post = () => {
       queued = false;
-      const section = sectionRef.current;
       const frame = frameRef.current;
-      if (!section || !frame?.contentWindow) return;
+      if (!frame?.contentWindow) return;
 
-      const rect = section.getBoundingClientRect();
-      const span = rect.height - (window.innerHeight - PIN_OFFSET);
+      const span = height - (window.innerHeight - PIN_OFFSET);
       if (span <= 0) return;
 
-      const p = Math.min(1, Math.max(0, -rect.top / span));
+      const p = Math.min(1, Math.max(0, (window.scrollY - top) / span));
       if (Math.abs(p - sent) < 0.001) return;
       sent = p;
       frame.contentWindow.postMessage(
@@ -47,6 +62,12 @@ export default function Industries() {
       if (queued) return;
       queued = true;
       requestAnimationFrame(post);
+    };
+
+    const remeasureAndPost = () => {
+      measure();
+      sent = -1;
+      post();
     };
 
     // When Lenis is running, bind to its own scroll event: it fires
@@ -67,21 +88,26 @@ export default function Industries() {
         window.addEventListener("scroll", schedule, { passive: true });
         bound = "native";
       }
-      sent = -1;
       post();
     };
 
+    measure();
     bind(getLenis());
     const unbindWatch = onLenisChange(bind);
 
     const frame = frameRef.current;
     // The frame is lazy; hand it the current position once it loads.
-    const onLoad = () => {
-      sent = -1;
-      post();
-    };
+    const onLoad = () => remeasureAndPost();
     frame?.addEventListener("load", onLoad);
-    window.addEventListener("resize", schedule);
+    window.addEventListener("resize", remeasureAndPost);
+    // Layout above this section can still shift after mount (webfonts
+    // swapping in changes text height), which would leave `top` stale.
+    document.fonts?.ready.then(remeasureAndPost);
+
+    const section = sectionRef.current;
+    const ro = section ? new ResizeObserver(remeasureAndPost) : null;
+    if (section) ro?.observe(section);
+
     post();
 
     return () => {
@@ -89,7 +115,8 @@ export default function Industries() {
       if (bound === "native") window.removeEventListener("scroll", schedule);
       else if (bound !== "unset") bound.off("scroll", post);
       frame?.removeEventListener("load", onLoad);
-      window.removeEventListener("resize", schedule);
+      window.removeEventListener("resize", remeasureAndPost);
+      ro?.disconnect();
     };
   }, []);
 
