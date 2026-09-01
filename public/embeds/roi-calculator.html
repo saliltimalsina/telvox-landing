@@ -71,7 +71,7 @@
   --brand-a: #a21ee8;
   --brand-b: #f239a0;
   --brand: linear-gradient(90deg, var(--brand-a) 0%, var(--brand-b) 100%);
-  --panel: rgba(255, 255, 255, .58);
+  --panel: rgba(255, 255, 255, .86);
   --line: rgba(23, 16, 52, .08);
   --sunken: rgba(23, 16, 52, .07);
   --label: rgba(23, 16, 52, .45);
@@ -247,9 +247,13 @@ html, body {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 22px;
+  /* Was a translucent panel over backdrop-filter: blur(16px). That blur is
+     re-sampled every frame the calculator is on screen, and under the parent
+     page's smooth-scroll momentum it stays on screen for a long deceleration
+     -- the sustained repaint is what made scrolling into this section lag.
+     A near-opaque panel drops the per-frame cost and looks all but identical
+     over the soft card artwork behind it. */
   background: var(--panel);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   overflow: hidden;
 }
 

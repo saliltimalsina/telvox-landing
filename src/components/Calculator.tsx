@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
+import { getLenis } from "@/lib/smoothScroll";
 import { BOOK_A_CALL } from "@/lib/site";
 
 /**
@@ -21,6 +22,9 @@ export default function Calculator() {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "telvox:roi-height" && typeof e.data.height === "number") {
         setHeight(e.data.height);
+        // The iframe just changed the page's height; let Lenis recompute its
+        // scroll limit so momentum doesn't fight a stale bound near here.
+        getLenis()?.resize();
       }
     };
     window.addEventListener("message", onMessage);
@@ -49,6 +53,10 @@ export default function Calculator() {
           style={{
             backgroundImage: "url(/cards/calculator-bg.webp)",
             backgroundSize: "100% 100%",
+            // Rasterize the blur once onto its own compositor layer so scroll
+            // just moves the cached bitmap instead of re-running blur(40px).
+            transform: "translateZ(0)",
+            willChange: "transform",
           }}
         />
         {/* The card's surface is the site's own artwork (1060×575), not a
@@ -60,11 +68,14 @@ export default function Calculator() {
             backgroundSize: "100% 100%",
           }}
         >
+          {/* Eager, not lazy: if the embed reports its height only once the
+              user scrolls near it, the content jump lands mid-momentum under
+              Lenis and reads as a stutter. Settle the height up front. */}
           <iframe
             ref={frameRef}
             src="/embeds/roi-calculator.html"
             title="ROI calculator"
-            loading="lazy"
+            loading="eager"
             className="roi-frame block w-full border-0"
             style={height ? { height } : undefined}
           />

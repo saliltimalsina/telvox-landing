@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type Lenis from "lenis";
+import { getLenis, onLenisChange } from "@/lib/smoothScroll";
 
 const PIN_OFFSET = 88;
 
@@ -40,11 +42,37 @@ export default function Industries() {
       );
     };
 
-    const onScroll = () => {
+    // rAF-throttled path for native scroll / resize.
+    const schedule = () => {
       if (queued) return;
       queued = true;
       requestAnimationFrame(post);
     };
+
+    // When Lenis is running, bind to its own scroll event: it fires
+    // synchronously inside Lenis's rAF, in the same frame the scroll position
+    // is written, so the wheel tracks the page instead of trailing it by a
+    // frame (which is what read as jitter through the pinned section).
+    let bound: Lenis | "native" | "unset" = "unset";
+    const bind = (lenis: Lenis | null) => {
+      const next = lenis ?? "native";
+      if (next === bound) return;
+      if (bound === "native") window.removeEventListener("scroll", schedule);
+      else if (bound !== "unset") bound.off("scroll", post);
+
+      if (lenis) {
+        lenis.on("scroll", post);
+        bound = lenis;
+      } else {
+        window.addEventListener("scroll", schedule, { passive: true });
+        bound = "native";
+      }
+      sent = -1;
+      post();
+    };
+
+    bind(getLenis());
+    const unbindWatch = onLenisChange(bind);
 
     const frame = frameRef.current;
     // The frame is lazy; hand it the current position once it loads.
@@ -53,14 +81,15 @@ export default function Industries() {
       post();
     };
     frame?.addEventListener("load", onLoad);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    onScroll();
+    window.addEventListener("resize", schedule);
+    post();
 
     return () => {
+      unbindWatch();
+      if (bound === "native") window.removeEventListener("scroll", schedule);
+      else if (bound !== "unset") bound.off("scroll", post);
       frame?.removeEventListener("load", onLoad);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", schedule);
     };
   }, []);
 

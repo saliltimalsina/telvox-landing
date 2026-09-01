@@ -21,7 +21,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   /* Firefox: thin, low-contrast scrollbar instead of the default chunky one. */
   scrollbar-width: thin;
   scrollbar-color: rgba(23, 16, 52, 0.18) transparent;
@@ -57,12 +56,6 @@ body {
 /* Anchor jumps land below the sticky nav rather than under it. */
 section[id] {
   scroll-margin-top: 96px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
 }
 
 .brand-gradient-text {

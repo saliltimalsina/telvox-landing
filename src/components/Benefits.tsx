@@ -85,7 +85,6 @@ export default function Benefits() {
           </Card>
           <Card
             h={460}
-            delay={0.08}
             title="Works With Your Systems"
             desc="API-first. Connects to your CRM, ERP, hospital system, or internal database — it fits in, it doesn’t replace."
           >
@@ -97,7 +96,6 @@ export default function Benefits() {
         <div className="flex flex-col gap-5">
           <Card
             h={300}
-            delay={0.04}
             title="Speaks Your Language"
             desc="Any language, any accent. Natural conversations, not translations."
           >
@@ -110,7 +108,6 @@ export default function Benefits() {
           </Card>
           <Card
             h={300}
-            delay={0.12}
             title="Less Busywork, More Growth"
             desc="Skip the guesswork. Launch fast and hassle-free with Telvox’s voice infrastructure."
           >
@@ -124,7 +121,6 @@ export default function Benefits() {
           </Card>
           <Card
             h={300}
-            delay={0.2}
             title="Captures & Qualifies Leads"
             desc="Integrates with your calendar. Books, reschedules, and sends reminders automatically."
           >
@@ -136,7 +132,6 @@ export default function Benefits() {
         <div className="flex flex-col gap-5">
           <Card
             h={460}
-            delay={0.08}
             title="Knows When To Hand Over"
             desc="Hands over to a human, intelligently, with full context already handed over, when it matters most."
           >
@@ -148,7 +143,7 @@ export default function Benefits() {
           </Card>
 
           {/* The artwork is the whole card here — copy sits over its lower half. */}
-          <Reveal delay={0.16}>
+          <Reveal>
             <div className="relative h-[460px] overflow-hidden rounded-2xl bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
