@@ -471,7 +471,11 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
 .tvx-industries-pill {
   position: absolute;
   left: 50%;
-  top: 200px;
+  /* Fallback only. The script at the end of this file measures the real
+   * position of "Built for every industry" and sets `top` so the pill sits
+   * just above it -- the section-opening eyebrow position every other
+   * section uses. This value is what shows before that runs / if it can't. */
+  top: 24px;
   z-index: 20;
   transform: translateX(-50%);
   display: inline-flex;
@@ -483,7 +487,12 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
   font-family: 'Plus Jakarta Sans', 'Geist', system-ui, -apple-system, sans-serif;
   font-size: 18px;
   font-weight: 400;
+  /* Hairline + a tighter contact shadow so the pill still reads as a raised
+   * card where it overlaps the white dome disc behind the lockup -- without
+   * it, white-on-white leaves only the text and a ghost of the soft shadow. */
+  border: 1px solid rgba(23, 16, 52, 0.10);
   box-shadow:
+    rgba(23, 16, 52, 0.10) 0px 1px 2px 0px,
     rgba(0, 0, 0, 0.07) 0px 2px 5px 0px,
     rgba(0, 0, 0, 0.06) 0px 8px 8px 0px,
     rgba(0, 0, 0, 0.03) 0px 18px 11px 0px;
@@ -495,10 +504,10 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
  * those Tailwind utilities (same selector specificity, later in the
  * cascade) rather than editing them, since a new pixel value here wouldn't
  * exist in the ahead-of-time compiled sheet. */
-.tvx-industries-intro { top: 0px; }
-@media (min-width: 640px) { .tvx-industries-intro { top: 30px; } }
-@media (min-width: 1024px) { .tvx-industries-intro { top: 8px; } }
-@media (min-width: 1536px) { .tvx-industries-intro { top: 40px; } }
+.tvx-industries-intro { top: 100px; }
+@media (min-width: 640px) { .tvx-industries-intro { top: 132px; } }
+@media (min-width: 1024px) { .tvx-industries-intro { top: 104px; } }
+@media (min-width: 1536px) { .tvx-industries-intro { top: 144px; } }
 </style>
 </head>
 <body>
@@ -704,6 +713,31 @@ body { font-family: 'Geist', system-ui, -apple-system, sans-serif; }
   (function () {
     var logo = document.querySelector('img[src*="telvox-logo-full"]');
     if (logo && logo.parentNode) logo.parentNode.style.marginTop = "-30px";
+  })();
+
+  /* Sit the "Industries" eyebrow pill just above "Built for every industry".
+   * It lives on its own layer OUTSIDE the wheel canvas's scale() (see
+   * .tvx-industries-pill), so it can't inherit that block's position -- its
+   * `top` is measured here against the eyebrow's real rect instead of being
+   * guessed per breakpoint. Anchored off .tvx-industries-intro's first <p>,
+   * not a class on the pill's neighbours. */
+  (function () {
+    var section = document.getElementById("section-cinematic-project");
+    var pill = section && section.querySelector(".tvx-industries-pill");
+    var intro = section && section.querySelector(".tvx-industries-intro");
+    var eyebrow = intro && intro.querySelector("p");
+    if (!section || !pill || !eyebrow) return;
+
+    function place() {
+      var top = eyebrow.getBoundingClientRect().top
+              - section.getBoundingClientRect().top
+              - pill.offsetHeight - 12;
+      pill.style.top = Math.max(8, Math.round(top)) + "px";
+    }
+
+    place();
+    window.addEventListener("resize", place);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
   })();
 
   /* teach it once: the first segment pulses and its glyph animates, then stops */
