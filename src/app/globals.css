@@ -147,7 +147,9 @@ section[id] {
   /* The wheel is taller than the frame; fade the cut rather than slicing
    * a segment's card mid-word as it turns past the top edge. Eased over a
    * taller band (was 76px) so the blend into the matching page background
-   * above reads as a slow fade rather than a quick cut. */
+   * above reads as a slow fade rather than a quick cut. industries.html's
+   * "Industries" pill sits at 200px from this same top edge, comfortably
+   * past this fade -- keep it that way if either value moves. */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 180px, #000 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 180px, #000 100%);
   -webkit-mask-repeat: no-repeat;

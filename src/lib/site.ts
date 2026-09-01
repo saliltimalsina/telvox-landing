@@ -2,8 +2,8 @@ export const BOOK_A_CALL = "https://cal.com/team/telvox/intro";
 
 export const NAV_LINKS = [
   { label: "Features", href: "#features" },
+  { label: "Industries", href: "#industries" },
   { label: "Onboarding", href: "#onboarding" },
-  { label: "Calculator", href: "#calculator" },
   { label: "FAQs", href: "#faq" },
 ];
 
