@@ -102,10 +102,10 @@ export default function Footer() {
               </span>
               <span>
                 <span className="block text-[15px] text-[#171034]">
-                  Sales@telvox.ai
+                  hello@telvox.ai
                 </span>
                 <span className="block text-[13px] text-black/50">
-                  HQ: Kathmandu, Nepal
+                  Lalitpur, Nepal
                 </span>
               </span>
             </a>
